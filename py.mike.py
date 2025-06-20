@@ -77,6 +77,8 @@ def generiere_html(nische):
     beschreibung = generiere_infotext(nische)
     bild = f"https://source.unsplash.com/800x400/?{nische.replace(' ', '+')}"
     schemaorg = generiere_schemaorg(nische, beschreibung, bild)
+    plausible = '<script async defer data-domain="mike181812.github.io/meine-nischenseite" src="https://plausible.io/js/plausible.js"></script>'
+
     html = f"""
     <!DOCTYPE html>
     <html lang=\"en\">
@@ -117,9 +119,10 @@ def generiere_html(nische):
     for name, link in affiliate_links.items():
         html += f'<li><a href="{link}" target="_blank" rel="nofollow sponsored">{name} Link</a></li>\n'
 
-    html += """
+    html += f"""
         </ul>
         <p><em>By clicking the links you support this site. Thank you!</em></p>
+        {plausible}
     </body>
     </html>
     """
