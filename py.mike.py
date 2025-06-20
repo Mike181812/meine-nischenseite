@@ -37,19 +37,17 @@ def generiere_schemaorg(nische, beschreibung, bild):
     <script type="application/ld+json">
     {{
       "@context": "https://schema.org",
-      "@type": "Article",
-      "headline": "{nische} Empfehlungen",
-      "description": "{beschreibung}",
-      "image": "{bild}",
-      "author": {{
-        "@type": "Organization",
-        "name": "Mike's Nischenseite"
-      }},
-      "publisher": {{
-        "@type": "Organization",
-        "name": "Mike's Nischenseite"
-      }},
-      "datePublished": "{datetime.now().date()}"
+      "@type": "FAQPage",
+      "mainEntity": [
+        {{
+          "@type": "Question",
+          "name": "Was ist {nische}?",
+          "acceptedAnswer": {{
+            "@type": "Answer",
+            "text": "{beschreibung}"
+          }}
+        }}
+      ]
     }}
     </script>
     '''
@@ -72,6 +70,7 @@ def generiere_html(nische):
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; background: #fff; color: #222; }}
             h1 {{ color: #006699; }}
+            h2 {{ color: #003366; margin-top: 30px; }}
             ul {{ padding-left: 20px; }}
             a {{ color: #0066cc; text-decoration: none; }}
             a:hover {{ text-decoration: underline; }}
@@ -83,6 +82,9 @@ def generiere_html(nische):
         <h1>{nische} – Unsere Empfehlungen</h1>
         <img src=\"{bild}\" alt=\"{nische}\">
         <p>{beschreibung}</p>
+        <h2>Vorteile von {nische}</h2>
+        <p>Erfahre, warum {nische} für dich sinnvoll sein kann. Viele Menschen nutzen es bereits für ihren Alltag oder Hobby.</p>
+        <h2>Unsere Produktempfehlungen</h2>
         <p>Hier findest du empfohlene Produkte mit Partnerlinks:</p>
         <ul>
     """
