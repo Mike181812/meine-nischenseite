@@ -201,7 +201,7 @@ def erstelle_backlinks():
             if response.ok:
                 print("🔗 Backlink erstellt auf Pastebin")
             else:
-                print("⚠️ Fehler bei Backlink-Erstellung")
+                print(f"⚠️ Fehler bei Backlink-Erstellung: {response.status_code} – {response.text}")
         except Exception as e:
             print("❌ Fehler bei Backlink-Anfrage:", e)
 
