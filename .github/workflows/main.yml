@@ -1,33 +1,33 @@
-name: Automatisches Nischenseiten-Update
+name: Auto Affiliate Site Builder
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Täglich um 8 Uhr deutsche Zeit
+    - cron: "0 7 * * *"  # läuft täglich um 08:00 Uhr (MEZ)
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Repository klonen
-        uses: actions/checkout@v3
+    - name: Repository klonen
+      uses: actions/checkout@v3
 
-      - name: Python installieren
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Python installieren
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Abhängigkeiten installieren
-        run: |
-          pip install pytrends
+    - name: Abhängigkeiten installieren
+      run: pip install pytrends requests
 
-      - name: Skript ausführen
-        run: python py.mike.py
+    - name: Skript ausführen
+      run: python py.mike.py
 
-      - name: Änderungen pushen
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add .
-          git commit -m "Automatisches Update"
-          git push
+    - name: Änderungen hochladen
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add .
+        git commit -m "Automatischer Upload"
+        git push
