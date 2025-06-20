@@ -1,9 +1,9 @@
-# Automatisiertes Python-Skript zum Erstellen von HTML-Webseiten mit Affiliate-Inhalten + SEO-Sitemap + strukturierte Daten + Google Trends + Auto-Git
-# Diese HTML-Dateien kannst du auf GitHub Pages hochladen, um eine Nischenseite zu betreiben
+# Automatisiertes Python-Skript zum Erstellen von HTML-Webseiten mit Affiliate-Inhalten + SEO-Sitemap + strukturierte Daten + Google Trends + Auto-Git + Backlinks
 
 import os
 import random
 import subprocess
+import requests
 from datetime import datetime
 from pytrends.request import TrendReq
 from collections import defaultdict
@@ -182,6 +182,29 @@ def git_push():
     except subprocess.CalledProcessError as e:
         print("❌ GitHub upload failed:", e)
 
+# ➕ Backlinks automatisch erstellen (z. B. bei pastebin)
+def erstelle_backlinks():
+    dateien = [f for f in os.listdir(github_ordner) if f.endswith(".html") and f != "index.html"]
+    for datei in dateien:
+        link = f"https://mike181812.github.io/meine-nischenseite/{datei}"
+        beschreibung = f"Check out this niche topic: {datei.replace('_', ' ').replace('.html', '')}\n{link}"
+        try:
+            response = requests.post(
+                "https://pastebin.com/api/api_post.php",
+                data={
+                    "api_dev_key": "SLDeut68nHHRo6oTqYz1Jlh0GdZB1wot",
+                    "api_option": "paste",
+                    "api_paste_code": beschreibung,
+                    "api_paste_private": "1"
+                }
+            )
+            if response.ok:
+                print("🔗 Backlink erstellt auf Pastebin")
+            else:
+                print("⚠️ Fehler bei Backlink-Erstellung")
+        except Exception as e:
+            print("❌ Fehler bei Backlink-Anfrage:", e)
+
 # Hauptablauf
 if __name__ == "__main__":
     themen = lade_trend_themen()
@@ -193,4 +216,5 @@ if __name__ == "__main__":
 
     aktualisiere_index()
     generiere_sitemap()
+    erstelle_backlinks()
     git_push()
