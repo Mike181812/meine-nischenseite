@@ -139,6 +139,7 @@ def aktualisiere_index():
         <meta charset=\"UTF-8\">
         <title>Daily Niche Recommendations</title>
         <meta name=\"description\" content=\"Overview of all niche pages generated automatically.\">
+        <script async defer data-domain="mike181812.github.io/meine-nischenseite" src="https://plausible.io/js/plausible.js"></script>
         <style>
             body {{ font-family: Arial, sans-serif; padding: 20px; max-width: 700px; margin: auto; }}
             h1 {{ color: #003366; }}
