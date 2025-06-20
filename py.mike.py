@@ -1,4 +1,4 @@
-# Automatisiertes Python-Skript zum Erstellen von HTML-Webseiten mit Affiliate-Inhalten + SEO-Sitemap + strukturierte Daten + Google Trends + Auto-Git + Backlinks
+# Automatisiertes Python-Skript zum Erstellen von HTML-Webseiten mit Affiliate-Inhalten + SEO-Sitemap + strukturierte Daten + Google Trends + Auto-Git + Backlinks + Mehrsprachigkeit
 
 import os
 import random
@@ -24,16 +24,26 @@ def lade_trend_themen():
         return fallback_themen
 
 # Infotexte erzeugen
-def generiere_infotext(nische):
-    return f"{nische} is trending. Here you'll find helpful products and tips."
+def generiere_infotext(nische, sprache):
+    if sprache == "de":
+        return f"{nische} ist aktuell im Trend. Hier findest du nützliche Produkte und Empfehlungen."
+    else:
+        return f"{nische} is trending. Here you'll find helpful products and tips."
 
-def meta_description():
-    return "Daily new niche pages with product recommendations and affiliate links."
+def meta_description(sprache):
+    if sprache == "de":
+        return "Täglich neue Nischenseiten mit Produktempfehlungen und Affiliate-Links."
+    else:
+        return "Daily new niche pages with product recommendations and affiliate links."
 
-def meta_keywords():
-    return "Affiliate, Amazon, eBay, Trends, Recommendations, Reviews"
+def meta_keywords(sprache):
+    if sprache == "de":
+        return "Affiliate, Amazon, eBay, Trends, Empfehlungen, Rezensionen"
+    else:
+        return "Affiliate, Amazon, eBay, Trends, Recommendations, Reviews"
 
-def generiere_schemaorg(nische, beschreibung):
+def generiere_schemaorg(nische, beschreibung, sprache):
+    frage = f"Was ist {nische}?" if sprache == "de" else f"What is {nische}?"
     return f'''
     <script type="application/ld+json">
     {{
@@ -42,7 +52,7 @@ def generiere_schemaorg(nische, beschreibung):
       "mainEntity": [
         {{
           "@type": "Question",
-          "name": "What is {nische}?",
+          "name": "{frage}",
           "acceptedAnswer": {{
             "@type": "Answer",
             "text": "{beschreibung}"
@@ -53,10 +63,10 @@ def generiere_schemaorg(nische, beschreibung):
     </script>
     '''
 
-def generiere_html(nische):
-    beschreibung = generiere_infotext(nische)
+def generiere_html(nische, sprache):
+    beschreibung = generiere_infotext(nische, sprache)
     bild = f"https://source.unsplash.com/800x400/?{nische.replace(' ', '+')}"
-    schemaorg = generiere_schemaorg(nische, beschreibung)
+    schemaorg = generiere_schemaorg(nische, beschreibung, sprache)
     plausible = '<script async defer data-domain="mike181812.github.io/meine-nischenseite" src="https://plausible.io/js/plausible.js"></script>'
 
     affiliate_links = [
@@ -66,14 +76,18 @@ def generiere_html(nische):
     ]
     random.shuffle(affiliate_links)
 
+    h1 = f"{nische} – Unsere Empfehlungen" if sprache == "de" else f"{nische} – Our Recommendations"
+    product_header = "Produktlinks" if sprache == "de" else "Product Links"
+    note = "<p><em>Unterstütze uns mit einem Klick. Danke!</em></p>" if sprache == "de" else "<p><em>Support us by clicking. Thanks!</em></p>"
+
     html = f"""
     <!DOCTYPE html>
-    <html lang=\"en\">
+    <html lang=\"{sprache}\">
     <head>
         <meta charset=\"UTF-8\">
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-        <meta name=\"description\" content=\"{meta_description()}\">
-        <meta name=\"keywords\" content=\"{meta_keywords()}\">
+        <meta name=\"description\" content=\"{meta_description(sprache)}\">
+        <meta name=\"keywords\" content=\"{meta_keywords(sprache)}\">
         <title>{nische} Recommendations</title>
         {plausible}
         {schemaorg}
@@ -84,17 +98,17 @@ def generiere_html(nische):
         </style>
     </head>
     <body>
-        <h1>{nische} – Our Recommendations</h1>
+        <h1>{h1}</h1>
         <img src=\"{bild}\" alt=\"{nische}\">
         <p>{beschreibung}</p>
-        <h2>Product Links</h2>
+        <h2>{product_header}</h2>
         <ul>
     """
     for name, url in affiliate_links:
         html += f'<li><a href="{url}" target="_blank" rel="nofollow sponsored">{name}</a></li>'
-    html += """
+    html += f"""
         </ul>
-        <p><em>Support us by clicking. Thanks!</em></p>
+        {note}
     </body>
     </html>
     """
@@ -130,7 +144,6 @@ def git_push():
     except subprocess.CalledProcessError as e:
         print("❌ GitHub Fehler:", e)
 
-# Neue Backlink-Funktion mit Service-Rotation
 def erstelle_backlinks():
     dienste = [
         ("https://pastebin.com/api/api_post.php", "api_dev_key=SLDeut68nHHRo6oTqYz1Jlh0GdZB1wot"),
@@ -162,11 +175,12 @@ def erstelle_backlinks():
 
 if __name__ == "__main__":
     themen = lade_trend_themen()
-    for thema in themen[:10]:  # statt 5 jetzt 10
-        dateiname = f"{thema.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-        inhalt = generiere_html(thema)
-        with open(os.path.join(github_ordner, dateiname), "w", encoding="utf-8") as f:
-            f.write(inhalt)
+    for thema in themen[:10]:
+        for sprache in ["en", "de"]:
+            dateiname = f"{thema.replace(' ', '_')}_{sprache.upper()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+            inhalt = generiere_html(thema, sprache)
+            with open(os.path.join(github_ordner, dateiname), "w", encoding="utf-8") as f:
+                f.write(inhalt)
 
     aktualisiere_index()
     generiere_sitemap()
