@@ -3,22 +3,27 @@
 
 import os
 import random
+import subprocess
 from datetime import datetime
 from pytrends.request import TrendReq
+from collections import defaultdict
 
 # Pfad zu deinem GitHub-Ordner (bitte ggf. anpassen)
 github_ordner = r"C:\Users\Mike\Desktop\meine-nischenseite"
 
 # Google Trends Nischenthemen holen
 def lade_trend_themen():
-    pytrends = TrendReq(hl='de-DE', tz=360)
+    fallback_themen = ["Garten", "Fitness", "Smart Home", "Camping", "Kaffeeautomat"]
     try:
+        pytrends = TrendReq(hl='de-DE', tz=360)
         trending_searches_df = pytrends.trending_searches(pn='germany')
         trends = trending_searches_df[0].tolist()[:10]  # Top 10
+        print("✅ Google Trends erfolgreich geladen.")
         return trends
     except Exception as e:
         print("❌ Konnte keine Trends laden:", e)
-        return ["Garten", "Fitness", "Smart Home", "Camping", "Kaffeeautomat"]
+        print("⚠️ Verwende statische Themen als Ersatz.")
+        return fallback_themen
 
 # Beispielhafte Infotexte als Platzhalter
 def generiere_infotext(nische):
@@ -51,6 +56,21 @@ def generiere_schemaorg(nische, beschreibung, bild):
     }}
     </script>
     '''
+
+# Kategorie aus Thema ableiten
+def ermittle_kategorie(nische):
+    kategorien = {
+        "Camping": "Camping",
+        "Garten": "Garten",
+        "Kaffee": "Küche",
+        "Smart": "Technik",
+        "Fitness": "Gesundheit",
+        "Minimalismus": "Lifestyle",
+    }
+    for schluessel, kategorie in kategorien.items():
+        if schluessel.lower() in nische.lower():
+            return kategorie
+    return "Sonstiges"
 
 # HTML-Seite generieren
 def generiere_html(nische):
@@ -114,11 +134,23 @@ def speichere_html(dateiname, html_inhalt):
 # Index-Datei aktualisieren oder erstellen
 def aktualisiere_index(dateiname):
     index_datei = os.path.join(github_ordner, "index.html")
-    eintrag = f'<li><a href="{dateiname}">{dateiname}</a></li>\n'
+    kategorie = ermittle_kategorie(dateiname)
+    kategorien_eintraege = defaultdict(list)
 
-    if not os.path.exists(index_datei):
-        with open(index_datei, "w", encoding="utf-8") as f:
-            f.write("""
+    if os.path.exists(index_datei):
+        with open(index_datei, "r", encoding="utf-8") as f:
+            zeilen = f.readlines()
+            aktuelle_kategorie = None
+            for zeile in zeilen:
+                if zeile.startswith("<h2>"):
+                    aktuelle_kategorie = zeile.strip().replace("<h2>", "").replace("</h2>", "")
+                elif zeile.startswith("<li><a ") and aktuelle_kategorie:
+                    kategorien_eintraege[aktuelle_kategorie].append(zeile)
+
+    kategorien_eintraege[kategorie].append(f'<li><a href="{dateiname}">{dateiname}</a></li>\n')
+
+    with open(index_datei, "w", encoding="utf-8") as f:
+        f.write("""
 <!DOCTYPE html>
 <html lang=\"de\">
 <head>
@@ -135,74 +167,40 @@ def aktualisiere_index(dateiname):
 </head>
 <body>
     <h1>Willkommen auf meiner Nischenseite</h1>
-    <ul>
 """)
-            f.write(eintrag)
-            f.write("""
-    </ul>
+        for kat, links in sorted(kategorien_eintraege.items()):
+            f.write(f'<h2>{kat}</h2>\n<ul>\n')
+            for link in links:
+                f.write(link)
+            f.write('</ul>\n')
+        f.write("""
 </body>
 </html>
 """)
-    else:
-        with open(index_datei, "r", encoding="utf-8") as f:
-            lines = f.readlines()
 
-        with open(index_datei, "w", encoding="utf-8") as f:
-            for line in lines:
-                if line.strip() == "</ul>":
-                    f.write(eintrag)
-                f.write(line)
-
-# Sitemap aktualisieren
-def aktualisiere_sitemap(dateiname):
-    sitemap_datei = os.path.join(github_ordner, "sitemap.xml")
-    url = f"https://mike181812.github.io/meine-nischenseite/{dateiname}"
-    eintrag = f"  <url>\n    <loc>{url}</loc>\n    <lastmod>{datetime.now().date()}</lastmod>\n  </url>\n"
-
-    if not os.path.exists(sitemap_datei):
-        with open(sitemap_datei, "w", encoding="utf-8") as f:
-            f.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-            f.write("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
-            f.write(eintrag)
-            f.write("</urlset>")
-    else:
-        with open(sitemap_datei, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        with open(sitemap_datei, "w", encoding="utf-8") as f:
-            for line in lines:
-                if line.strip() == "</urlset>":
-                    f.write(eintrag)
-                f.write(line)
-
-# Robots.txt erzeugen
-def erstelle_robots_txt():
-    robots_path = os.path.join(github_ordner, "robots.txt")
-    with open(robots_path, "w", encoding="utf-8") as f:
-        f.write("User-agent: *\n")
-        f.write("Allow: /\n")
-        f.write("Sitemap: https://mike181812.github.io/meine-nischenseite/sitemap.xml\n")
-
-# Automatisch git commit & push ausführen
-def git_push(commit_message):
-    os.chdir(github_ordner)
-    os.system("git add .")
-    os.system(f'git commit -m "{commit_message}"')
-    os.system("git push")
+# Automatisches Git Commit + Push
+def git_push():
+    try:
+        subprocess.run(["git", "add", "."], cwd=github_ordner, check=True)
+        subprocess.run(["git", "commit", "-m", "Auto-Update Nischenseite"], cwd=github_ordner, check=True)
+        subprocess.run(["git", "push"], cwd=github_ordner, check=True)
+        print("🚀 Änderungen wurden automatisch zu GitHub hochgeladen.")
+    except Exception as e:
+        print("❌ Git Push fehlgeschlagen:", e)
 
 # Hauptfunktion
 def erstelle_webseite():
-    trend_themen = lade_trend_themen()
-    nische = random.choice(trend_themen)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dateiname = f"{nische.replace(' ', '_')}_{timestamp}.html"
-    html_inhalt = generiere_html(nische)
-    speichere_html(dateiname, html_inhalt)
+    trends = lade_trend_themen()
+    jetzt = datetime.now().strftime("%Y%m%d_%H%M%S")
+    thema = random.choice(trends)
+    dateiname = f"{thema.replace(' ', '_')}_{jetzt}.html"
+    html = generiere_html(thema)
+    speichere_html(dateiname, html)
     aktualisiere_index(dateiname)
-    aktualisiere_sitemap(dateiname)
-    erstelle_robots_txt()
-    print(f"HTML-Seite '{dateiname}' erstellt mit Google-Trend-Thema.")
-    git_push(f"Neue Seite: {dateiname}")
+    print(f"✅ HTML-Seite '{dateiname}' erstellt mit Google-Trend-Thema.")
+    git_push()
 
+# Starte das Skript
 if __name__ == "__main__":
     erstelle_webseite()
+    input("Drücke eine beliebige Taste . . .")
