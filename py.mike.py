@@ -88,6 +88,7 @@ def generiere_html(nische):
         <meta name=\"description\" content=\"{meta_description()}\">
         <meta name=\"keywords\" content=\"{meta_keywords()}\">
         <title>{nische} Recommendations</title>
+        {plausible}
         {schemaorg}
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; background: #fff; color: #222; }}
@@ -122,7 +123,6 @@ def generiere_html(nische):
     html += f"""
         </ul>
         <p><em>By clicking the links you support this site. Thank you!</em></p>
-        {plausible}
     </body>
     </html>
     """
