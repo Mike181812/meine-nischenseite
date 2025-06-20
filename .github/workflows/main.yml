@@ -31,3 +31,11 @@ jobs:
         git add .
         git commit -m "Automatischer Upload"
         git push
+            - name: Bei Fehler abbrechen
+      if: failure()
+      run: echo "::error ::❌ Workflow fehlgeschlagen"
+
+    - name: Erfolgsmeldung
+      if: success()
+      run: echo "::notice ::✅ Workflow erfolgreich abgeschlossen"
+
