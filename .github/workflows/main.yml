@@ -1,0 +1,33 @@
+name: Automatisches Nischenseiten-Update
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # jeden Tag um 8 Uhr deutsche Zeit (6 Uhr UTC)
+  workflow_dispatch:      # erlaubt manuelles Starten
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository klonen
+        uses: actions/checkout@v3
+
+      - name: Python installieren
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install pytrends
+
+      - name: Script ausführen
+        run: python py.mike.py
+
+      - name: Änderungen pushen
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          git commit -m "Automatisches Update"
+          git push
