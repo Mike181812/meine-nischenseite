@@ -11,30 +11,30 @@ from collections import defaultdict
 # Pfad zu deinem GitHub-Ordner (bitte ggf. anpassen)
 github_ordner = r"C:\Users\Mike\Desktop\meine-nischenseite"
 
-# Google Trends Nischenthemen holen
+# Google Trends Nischenthemen holen (international)
 def lade_trend_themen():
-    fallback_themen = ["Garten", "Fitness", "Smart Home", "Camping", "Kaffeeautomat"]
+    fallback_themen = ["Fitness", "AI", "Minimalism", "Smartphone", "Camping"]
     try:
-        pytrends = TrendReq(hl='de-DE', tz=360)
-        trending_searches_df = pytrends.trending_searches(pn='germany')
+        pytrends = TrendReq(hl='en-US', tz=360)
+        trending_searches_df = pytrends.trending_searches(pn='united_states')
         trends = trending_searches_df[0].tolist()[:10]  # Top 10
-        print("✅ Google Trends erfolgreich geladen.")
+        print("✅ Google Trends (international) successfully loaded.")
         return trends
     except Exception as e:
-        print("❌ Konnte keine Trends laden:", e)
-        print("⚠️ Verwende statische Themen als Ersatz.")
+        print("❌ Could not load trends:", e)
+        print("⚠️ Using fallback topics instead.")
         return fallback_themen
 
 # Beispielhafte Infotexte als Platzhalter
 def generiere_infotext(nische):
-    return f"{nische} ist aktuell ein stark gefragtes Thema. Hier findest du hilfreiche Produkte, Tipps und Empfehlungen, um dich mit diesem Bereich vertraut zu machen."
+    return f"{nische} is currently a trending topic. Here you'll find useful products, tips and recommendations to get familiar with it."
 
 # SEO Meta-Texte
 def meta_description():
-    return "Täglich neue Nischenseiten mit ehrlichen Produktempfehlungen und Partnerlinks. Praktisch, unabhängig und kostenlos."
+    return "Daily new niche pages with honest product recommendations and affiliate links. Practical, independent and free."
 
 def meta_keywords():
-    return "Affiliate, Produktempfehlung, Amazon, eBay, Trends, Tipps, Empfehlungen"
+    return "Affiliate, Product recommendation, Amazon, eBay, Trends, Tips, Reviews"
 
 # Strukturierte Daten (schema.org)
 def generiere_schemaorg(nische, beschreibung, bild):
@@ -46,7 +46,7 @@ def generiere_schemaorg(nische, beschreibung, bild):
       "mainEntity": [
         {{
           "@type": "Question",
-          "name": "Was ist {nische}?",
+          "name": "What is {nische}?",
           "acceptedAnswer": {{
             "@type": "Answer",
             "text": "{beschreibung}"
@@ -61,16 +61,16 @@ def generiere_schemaorg(nische, beschreibung, bild):
 def ermittle_kategorie(nische):
     kategorien = {
         "Camping": "Camping",
-        "Garten": "Garten",
-        "Kaffee": "Küche",
-        "Smart": "Technik",
-        "Fitness": "Gesundheit",
-        "Minimalismus": "Lifestyle",
+        "Garden": "Garden",
+        "Coffee": "Kitchen",
+        "Smart": "Tech",
+        "Fitness": "Health",
+        "Minimalism": "Lifestyle",
     }
     for schluessel, kategorie in kategorien.items():
         if schluessel.lower() in nische.lower():
             return kategorie
-    return "Sonstiges"
+    return "Other"
 
 # HTML-Seite generieren
 def generiere_html(nische):
@@ -79,13 +79,13 @@ def generiere_html(nische):
     schemaorg = generiere_schemaorg(nische, beschreibung, bild)
     html = f"""
     <!DOCTYPE html>
-    <html lang=\"de\">
+    <html lang=\"en\">
     <head>
         <meta charset=\"UTF-8\">
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
         <meta name=\"description\" content=\"{meta_description()}\">
         <meta name=\"keywords\" content=\"{meta_keywords()}\">
-        <title>{nische} Empfehlungen</title>
+        <title>{nische} Recommendations</title>
         {schemaorg}
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; background: #fff; color: #222; }}
@@ -99,13 +99,13 @@ def generiere_html(nische):
         </style>
     </head>
     <body>
-        <h1>{nische} – Unsere Empfehlungen</h1>
+        <h1>{nische} – Our Recommendations</h1>
         <img src=\"{bild}\" alt=\"{nische}\">
         <p>{beschreibung}</p>
-        <h2>Vorteile von {nische}</h2>
-        <p>Erfahre, warum {nische} für dich sinnvoll sein kann. Viele Menschen nutzen es bereits für ihren Alltag oder Hobby.</p>
-        <h2>Unsere Produktempfehlungen</h2>
-        <p>Hier findest du empfohlene Produkte mit Partnerlinks:</p>
+        <h2>Benefits of {nische}</h2>
+        <p>Discover why {nische} can be useful for you. Many people already use it in their daily lives or hobbies.</p>
+        <h2>Our Product Recommendations</h2>
+        <p>Here are some recommended products with affiliate links:</p>
         <ul>
     """
 
@@ -119,88 +119,74 @@ def generiere_html(nische):
 
     html += """
         </ul>
-        <p><em>Mit Klick auf die Links unterstützt du diese Seite. Vielen Dank!</em></p>
+        <p><em>By clicking the links you support this site. Thank you!</em></p>
     </body>
     </html>
     """
     return html
 
-# HTML-Datei speichern
-def speichere_html(dateiname, html_inhalt):
-    pfad = os.path.join(github_ordner, dateiname)
-    with open(pfad, "w", encoding="utf-8") as file:
-        file.write(html_inhalt)
+# Index-Seite aktualisieren (englisch)
+def aktualisiere_index():
+    dateien = [f for f in os.listdir(github_ordner) if f.endswith(".html") and f != "index.html"]
+    links = "\n".join([f'<li><a href="{datei}">{datei.replace(".html", "").replace("_", " ")}</a></li>' for datei in sorted(dateien)])
+    html = f"""
+    <!DOCTYPE html>
+    <html lang=\"en\">
+    <head>
+        <meta charset=\"UTF-8\">
+        <title>Daily Niche Recommendations</title>
+        <meta name=\"description\" content=\"Overview of all niche pages generated automatically.\">
+        <style>
+            body {{ font-family: Arial, sans-serif; padding: 20px; max-width: 700px; margin: auto; }}
+            h1 {{ color: #003366; }}
+            ul {{ line-height: 1.8; }}
+        </style>
+    </head>
+    <body>
+        <h1>Daily Niche Pages</h1>
+        <p>Here you can find all the niche pages created using Google Trends and affiliate tools:</p>
+        <ul>
+            {links}
+        </ul>
+        <p><em>New pages are added every day. Stay tuned!</em></p>
+    </body>
+    </html>
+    """
+    with open(os.path.join(github_ordner, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
 
-# Index-Datei aktualisieren oder erstellen
-def aktualisiere_index(dateiname):
-    index_datei = os.path.join(github_ordner, "index.html")
-    kategorie = ermittle_kategorie(dateiname)
-    kategorien_eintraege = defaultdict(list)
+# Sitemap automatisch generieren
+def generiere_sitemap():
+    dateien = [f for f in os.listdir(github_ordner) if f.endswith(".html")]
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for datei in sorted(dateien):
+        url = f"https://mike181812.github.io/meine-nischenseite/{datei}"
+        sitemap += f"  <url>\n    <loc>{url}</loc>\n  </url>\n"
+    sitemap += '</urlset>'
+    with open(os.path.join(github_ordner, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write(sitemap)
+    print("✅ Sitemap erstellt: sitemap.xml")
 
-    if os.path.exists(index_datei):
-        with open(index_datei, "r", encoding="utf-8") as f:
-            zeilen = f.readlines()
-            aktuelle_kategorie = None
-            for zeile in zeilen:
-                if zeile.startswith("<h2>"):
-                    aktuelle_kategorie = zeile.strip().replace("<h2>", "").replace("</h2>", "")
-                elif zeile.startswith("<li><a ") and aktuelle_kategorie:
-                    kategorien_eintraege[aktuelle_kategorie].append(zeile)
-
-    kategorien_eintraege[kategorie].append(f'<li><a href="{dateiname}">{dateiname}</a></li>\n')
-
-    with open(index_datei, "w", encoding="utf-8") as f:
-        f.write("""
-<!DOCTYPE html>
-<html lang=\"de\">
-<head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>Startseite – Nischenseite</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; background: #fff; color: #222; }}
-        h1 {{ color: #006699; }}
-        ul {{ padding-left: 20px; }}
-        a {{ color: #0066cc; text-decoration: none; }}
-        a:hover {{ text-decoration: underline; }}
-    </style>
-</head>
-<body>
-    <h1>Willkommen auf meiner Nischenseite</h1>
-""")
-        for kat, links in sorted(kategorien_eintraege.items()):
-            f.write(f'<h2>{kat}</h2>\n<ul>\n')
-            for link in links:
-                f.write(link)
-            f.write('</ul>\n')
-        f.write("""
-</body>
-</html>
-""")
-
-# Automatisches Git Commit + Push
+# Automatisch zu GitHub hochladen
 def git_push():
     try:
-        subprocess.run(["git", "add", "."], cwd=github_ordner, check=True)
-        subprocess.run(["git", "commit", "-m", "Auto-Update Nischenseite"], cwd=github_ordner, check=True)
-        subprocess.run(["git", "push"], cwd=github_ordner, check=True)
-        print("🚀 Änderungen wurden automatisch zu GitHub hochgeladen.")
-    except Exception as e:
-        print("❌ Git Push fehlgeschlagen:", e)
+        subprocess.run(["git", "-C", github_ordner, "add", "."], check=True)
+        subprocess.run(["git", "-C", github_ordner, "commit", "-m", "Auto update"], check=True)
+        subprocess.run(["git", "-C", github_ordner, "push"], check=True)
+        print("✅ Auto-push to GitHub successful.")
+    except subprocess.CalledProcessError as e:
+        print("❌ GitHub upload failed:", e)
 
-# Hauptfunktion
-def erstelle_webseite():
-    trends = lade_trend_themen()
-    jetzt = datetime.now().strftime("%Y%m%d_%H%M%S")
-    thema = random.choice(trends)
-    dateiname = f"{thema.replace(' ', '_')}_{jetzt}.html"
-    html = generiere_html(thema)
-    speichere_html(dateiname, html)
-    aktualisiere_index(dateiname)
-    print(f"✅ HTML-Seite '{dateiname}' erstellt mit Google-Trend-Thema.")
-    git_push()
-
-# Starte das Skript
+# Hauptablauf
 if __name__ == "__main__":
-    erstelle_webseite()
-    input("Drücke eine beliebige Taste . . .")
+    themen = lade_trend_themen()
+    for thema in themen:
+        dateiname = f"{thema.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+        inhalt = generiere_html(thema)
+        with open(os.path.join(github_ordner, dateiname), "w", encoding="utf-8") as f:
+            f.write(inhalt)
+
+    aktualisiere_index()
+    generiere_sitemap()
+    git_push()
